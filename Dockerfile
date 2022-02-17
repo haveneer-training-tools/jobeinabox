@@ -33,6 +33,7 @@ COPY container-test.sh /
 # Configure php
 # Get and install jobe
 # Clean up
+# Compared to the original file, fp-compiler, octave and openjdk-16-jdk have been removed
 RUN ln -snf /usr/share/zoneinfo/"$TZ" /etc/localtime && \
     echo "$TZ" > /etc/timezone && \
     apt-get update && \
@@ -40,12 +41,9 @@ RUN ln -snf /usr/share/zoneinfo/"$TZ" /etc/localtime && \
         acl \
         apache2 \
         build-essential \
-        fp-compiler \
         git \
         libapache2-mod-php \
         nodejs \
-        octave \
-        openjdk-16-jdk \
         php \
         php-cli \
         php-mbstring \
