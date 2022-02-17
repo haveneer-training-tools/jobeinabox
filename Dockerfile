@@ -33,7 +33,7 @@ COPY container-test.sh /
 # Configure php
 # Get and install jobe
 # Clean up
-# Compared to the original file, fp-compiler, octave and openjdk-16-jdk have been removed
+# Compared to the original file, fp-compiler, nodejs, octave and openjdk-16-jdk have been removed
 RUN ln -snf /usr/share/zoneinfo/"$TZ" /etc/localtime && \
     echo "$TZ" > /etc/timezone && \
     apt-get update && \
@@ -43,7 +43,6 @@ RUN ln -snf /usr/share/zoneinfo/"$TZ" /etc/localtime && \
         build-essential \
         git \
         libapache2-mod-php \
-        nodejs \
         php \
         php-cli \
         php-mbstring \
@@ -53,7 +52,8 @@ RUN ln -snf /usr/share/zoneinfo/"$TZ" /etc/localtime && \
         sqlite3 \
         sudo \
         tzdata \
-        unzip && \
+        unzip  \
+        curl && \
     python3 -m pip install pylint && \
     pylint --reports=no --score=n --generate-rcfile > /etc/pylintrc && \
     ln -sf /proc/self/fd/1 /var/log/apache2/access.log && \
@@ -80,12 +80,7 @@ RUN ln -snf /usr/share/zoneinfo/"$TZ" /etc/localtime && \
 ENV RUSTUP_HOME=/opt/rust
 ENV CARGO_HOME=/opt/rust
  
-RUN apt-get update && \
-    apt install -y curl && \
-    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs  | sh -s -- -y --profile minimal --no-modify-path curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs  | sh -s -- -y --profile minimal --no-modify-path --default-toolchain 1.58.1 && \ 
-    apt-get -y autoremove --purge && \
-    apt-get -y clean && \
-    rm -rf /var/lib/apt/lists/* 
+RUN sh -c "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs  | sh -s -- -y --profile minimal --no-modify-path --default-toolchain 1.58.1" 
 
 ENV PATH="/opt/rust/bin:${PATH}" 
 # {} are necessary because $PATH will be host's PATH
