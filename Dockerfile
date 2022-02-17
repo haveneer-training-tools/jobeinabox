@@ -6,11 +6,11 @@ FROM docker.io/ubuntu:20.04
 
 # https://github.com/opencontainers/image-spec/blob/master/annotations.md
 LABEL \
-    org.opencontainers.image.authors="richard.lobb@canterbury.ac.nz,j.hoedjes@hva.nl,d.h.bowes@herts.ac.uk" \
+    org.opencontainers.image.authors="hpwxf@haveneer.com,richard.lobb@canterbury.ac.nz,j.hoedjes@hva.nl,d.h.bowes@herts.ac.uk" \
     org.opencontainers.image.title="JobeInABox" \
     org.opencontainers.image.description="JobeInABox" \
-    org.opencontainers.image.documentation="https://github.com/trampgeek/jobeinabox" \
-    org.opencontainers.image.source="https://github.com/trampgeek/jobeinabox"
+    org.opencontainers.image.documentation="https://github.com/haveneer-training-tools/jobeinabox" \
+    org.opencontainers.image.source="https://github.com/haveneer-training-tools/jobeinabox"
 
 ARG TZ=Pacific/Auckland
 # Set up the (apache) environment variables
@@ -70,7 +70,7 @@ RUN ln -snf /usr/share/zoneinfo/"$TZ" /etc/localtime && \
     mkdir -p /var/crash && \
     chmod 777 /var/crash && \
     echo '<!DOCTYPE html><html lang="en"><title>Jobe</title><h1>Jobe</h1></html>' > /var/www/html/index.html && \
-    git clone https://github.com/trampgeek/jobe.git /var/www/html/jobe && \
+    git clone https://github.com/haveneer-training-tools/jobe.git /var/www/html/jobe && \
     apache2ctl start && \
     cd /var/www/html/jobe && \
     /usr/bin/python3 /var/www/html/jobe/install && \
@@ -78,7 +78,20 @@ RUN ln -snf /usr/share/zoneinfo/"$TZ" /etc/localtime && \
     apt-get -y autoremove --purge && \
     apt-get -y clean && \
     rm -rf /var/lib/apt/lists/*
+ 
+ENV RUSTUP_HOME=/opt/rust
+ENV CARGO_HOME=/opt/rust
+ 
+RUN apt-get update && \
+    apt install -y curl && \
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs  | sh -s -- -y --profile minimal --no-modify-path curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs  | sh -s -- -y --profile minimal --no-modify-path --default-toolchain 1.58.1 && \ 
+    apt-get -y autoremove --purge && \
+    apt-get -y clean && \
+    rm -rf /var/lib/apt/lists/* 
 
+ENV PATH="/opt/rust/bin:${PATH}" 
+# {} are necessary because $PATH will be host's PATH
+    
 # Expose apache
 EXPOSE 80
 
