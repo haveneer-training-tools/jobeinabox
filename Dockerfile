@@ -21,6 +21,11 @@ ENV APACHE_LOCK_DIR /var/lock/apache2
 ENV APACHE_PID_FILE /var/run/apache2.pid
 ENV LANG C.UTF-8
 
+ENV RUSTUP_HOME=/opt/rust
+ENV CARGO_HOME=/opt/rust
+ENV PATH="/opt/rust/bin:${PATH}" 
+# {} are necessary because $PATH will be host's PATH
+
 # Copy apache virtual host file for later use
 COPY 000-jobe.conf /
 # Copy test script
@@ -68,23 +73,21 @@ RUN ln -snf /usr/share/zoneinfo/"$TZ" /etc/localtime && \
     mkdir -p /var/crash && \
     chmod 777 /var/crash && \
     echo '<!DOCTYPE html><html lang="en"><title>Jobe</title><h1>Jobe</h1></html>' > /var/www/html/index.html && \
-    git clone https://github.com/haveneer-training-tools/jobe.git /var/www/html/jobe && \
-    apache2ctl start && \
-    cd /var/www/html/jobe && \
-    /usr/bin/python3 /var/www/html/jobe/install && \
-    chown -R ${APACHE_RUN_USER}:${APACHE_RUN_GROUP} /var/www/html && \
     apt-get -y autoremove --purge && \
     apt-get -y clean && \
     rm -rf /var/lib/apt/lists/*
- 
-ENV RUSTUP_HOME=/opt/rust
-ENV CARGO_HOME=/opt/rust
- 
-RUN sh -c "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs  | sh -s -- -y --profile minimal --no-modify-path --default-toolchain 1.58.1" 
 
-ENV PATH="/opt/rust/bin:${PATH}" 
-# {} are necessary because $PATH will be host's PATH
-    
+# Prefer copy of a submodule to be sure to follow update
+COPY ./jobe/ /var/www/html/jobe
+
+RUN apache2ctl start && \
+    cd /var/www/html/jobe && \
+    /usr/bin/python3 /var/www/html/jobe/install && \
+    chown -R ${APACHE_RUN_USER}:${APACHE_RUN_GROUP} /var/www/html
+  
+RUN sh -c "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs  | sh -s -- -y --profile minimal --no-modify-path --default-toolchain 1.58.1"
+RUN sh -c 'for exe in /opt/rust/bin/* ; do ln -sf $exe /usr/bin ; done' # links for php jobe
+
 # Expose apache
 EXPOSE 80
 
